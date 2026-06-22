@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Printing - Instant Quote Calculator</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f23, #1a1a2e);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            color: #eee;
+        }
+        .hq-app {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .hq-info, .hq-form {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 24px;
+        }
+        .hq-form {
+            grid-column: 1 / -1;
+        }
+        @media (min-width: 768px) {
+            .hq-form {
+                grid-column: auto;
+            }
+        }
+        h1, h2, h3 {
+            margin-top: 0;
+            color: #00d4ff;
+        }
+        h2 { font-size: 1.2rem; }
+        h3 { font-size: 1rem; margin-bottom: 12px; }
+        .hq-section {
+            margin-bottom: 20px;
+        }
+        .hq-section input, .hq-section select, .hq-section textarea {
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            border: 1px solid #3a3a5c;
+            border-radius: 6px;
+            background: #0f0f23;
+            color: #fff;
+            font-size: 14px;
+        }
+        .hq-section input:focus, .hq-section select:focus, .hq-section textarea:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+        .hq-section small {
+            display: block;
+            margin-bottom: 8px;
+            color: #888;
+            font-size: 12px;
+        }
+        .hq-cost {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #2a2a4a;
+        }
+        .hq-total {
+            font-weight: bold;
+            color: #00ff88;
+            border-top: 2px solid #3a3a5c;
+            margin-top: 8px;
+            padding-top: 12px;
+        }
+        .hq-total span {
+            color: #00ff88;
+        }
+        button[type="submit"] {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #1a1a2e;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        button[type="submit"]:hover {
+            opacity: 0.9;
+        }
+        button[type="submit"]:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        #hq-msg {
+            display: none;
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+        }
+        .success-msg {
+            background: #1b4332;
+            color: #d8f3dc;
+        }
+        .error-msg {
+            background: #4a1e1e;
+            color: #ffddd6;
+        }
+        .copy-quote {
+            background: #00d4ff;
+            color: #1a1a2e;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .icon { margin-right: 6px; }
+    </style>
+</head>
+<body>
+    <div class="hq-app">
+        <div class="hq-info">
+            <h2><span class="icon">🔧</span> How It Works</h2>
+            <ol>
+                <li>Select your material - PLA, PETG, ABS, TPU, Nylon, PC, ASA</li>
+                <li>Enter weight and print time</li>
+                <li>Get instant price estimate</li>
+            </ol>
+            
+            <h3><span class="icon">💰</span> Pricing Breakdown</h3>
+            <ul>
+                <li>Material cost calculated from weight × pricing</li>
+                <li>Setup fee included ($15 for all prints)</li>
+                <li>Professional post-processing included</li>
+            </ul>
+            
+            <h3><span class="icon">📐</span> Material Prices (CAD/g)</h3>
+            <ul>
+                <li>PLA: $0.08</li>
+                <li>PETG: $0.10</li>
+                <li>ABS: $0.07</li>
+                <li>TPU: $0.15</li>
+                <li>Nylon: $0.12</li>
+                <li>ASA: $0.11</li>
+                <li>PC: $0.18</li>
+            </ul>
+            
+            <h3><span class="icon">✉️</span> Get Your Formal Quote</h3>
+            <p>After seeing instant estimate, submit contact info to receive:</p>
+            <ul>
+                <li>Formal quote with itemized breakdown</li>
+                <li>Material recommendation</li>
+                <li>Timeline estimate</li>
+            </ul>
+        </div>
+        
+        <div class="hq-form">
+            <form id="hq-form">
+                <div class="hq-section">
+                    <h3>Printer Details</h3>
+                    <select name="material" id="hq-material" required>
+                        <option value="">Select Material *</option>
+                        <option value="PLA">PLA</option>
+                        <option value="PETG">PETG</option>
+                        <option value="ABS">ABS</option>
+                        <option value="TPU">TPU</option>
+                        <option value="NYLON">Nylon</option>
+                        <option value="ASA">ASA</option>
+                        <option value="PC">PC</option>
+                    </select>
+                    <input type="number" name="weight" id="hq-weight" step="0.1" min="0" placeholder="Weight (grams) *" required>
+                    <input type="number" name="time" id="hq-time" step="0.1" min="0" placeholder="Print Time (hours)">
+                </div>
+                
+                <div class="hq-section">
+                    <h3>Cost Breakdown</h3>
+                    <div class="hq-cost"><span>Material Cost:</span><span>$<span id="hq-mat-cost">0.00</span></span></div>
+                    <div class="hq-cost"><span>Labor Cost:</span><span>$<span id="hq-labor-cost">0.00</span></span></div>
+                    <div class="hq-cost"><span>Setup Fee:</span><span>$<span id="hq-setup">15.00</span></span></div>
+                    <div class="hq-cost hq-total"><span>Total:</span><span>$<span id="hq-total">15.00</span> CAD</span></div>
+                    <button type="button" class="copy-quote" onclick="copyQuote()">Copy Quote to Clipboard</button>
+                </div>
+                
+                <script>
+        // Material prices (CAD per gram)
+        var prices = {
+            'PLA': 0.08,
+            'PETG': 0.10,
+            'ABS': 0.07,
+            'TPU': 0.15,
+            'NYLON': 0.12,
+            'ASA': 0.11,
+            'PC': 0.18
+        };
+        
+        var setupFee = 15;
+        var hourlyRate = 3;
+        
+        function calc() {
+            var mat = document.getElementById('hq-material').value;
+            var weight = parseFloat(document.getElementById('hq-weight').value) || 0;
+            var time = parseFloat(document.getElementById('hq-time').value) || 0;
+            var matCost = mat && weight ? weight * prices[mat] : 0;
+            var laborCost = time ? time * hourlyRate : 0;
+            var total = setupFee + matCost + laborCost;
+            
+            document.getElementById('hq-mat-cost').textContent = matCost.toFixed(2);
+            document.getElementById('hq-labor-cost').textContent = laborCost.toFixed(2);
+            document.getElementById('hq-total').textContent = total.toFixed(2);
+            document.getElementById('hq-form').dataset.quotePrice = total;
+        }
+        
+        // Attach events
+        document.getElementById('hq-material').addEventListener('change', calc);
+        document.getElementById('hq-weight').addEventListener('input', calc);
+        document.getElementById('hq-time').addEventListener('input', calc);
+        
+        // Initial calculation
+        calc();
+        
+        function copyQuote() {
+            var mat = document.getElementById('hq-material').value;
+            var weight = parseFloat(document.getElementById('hq-weight').value) || 0;
+            var time = parseFloat(document.getElementById('hq-time').value) || 0;
+            var matCost = mat && weight ? weight * prices[mat] : 0;
+            var laborCost = time ? time * hourlyRate : 0;
+            var total = setupFee + matCost + laborCost;
+            
+            var quoteText = `3D Print Quote
+Material: ${mat}
+Weight: ${weight}g
+Print Time: ${time}h
+Setup Fee: $${setupFee.toFixed(2)}
+Material Cost: $${matCost.toFixed(2)}
+Labor Cost: $${laborCost.toFixed(2)}
+Total: $${total.toFixed(2)} CAD
+
+Contact: ${document.getElementById('hq-name').value}
+Email: ${document.getElementById('hq-email').value}
+Phone: ${document.getElementById('hq-phone').value}
+
+Notes: ${document.getElementById('hq-notes').value}`;
+            
+            navigator.clipboard.writeText(quoteText).then(function() {
+                var msg = document.getElementById('hq-msg');
+                msg.textContent = 'Quote copied to clipboard!';
+                msg.className = 'success-msg';
+                msg.style.display = 'block';
+                setTimeout(function() { msg.style.display = 'none'; }, 3000);
+            });
+        }
+        
+        document.getElementById('hq-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var btn = document.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+            
+            var mat = document.getElementById('hq-material').value;
+            var weight = parseFloat(document.getElementById('hq-weight').value) || 0;
+            var time = parseFloat(document.getElementById('hq-time').value) || 0;
+            var matCost = mat && weight ? weight * prices[mat] : 0;
+            var laborCost = time ? time * hourlyRate : 0;
+            var total = setupFee + matCost + laborCost;
+            
+            var ref = 'HQ-' + Math.random().toString(36).substr(2, 8).toUpperCase();
+            
+            var msg = document.getElementById('hq-msg');
+            msg.className = 'success-msg';
+            msg.innerHTML = '<strong>Quote Generated!</strong><br>Reference: <strong>' + ref + '</strong><br>' +
+                'Total: <strong>$' + total.toFixed(2) + ' CAD</strong><br><br>' +
+                '<strong>Details:</strong><br>' +
+                'Material: ' + mat + '<br>' +
+                'Weight: ' + weight + 'g<br>' +
+                'Material Cost: $' + matCost.toFixed(2) + '<br>' +
+                'Labor: $' + laborCost.toFixed(2) + '<br>' +
+                'Setup: $' + setupFee.toFixed(2) + '<br><br>' +
+                '<em>Customer: ' + document.getElementById('hq-name').value + ' &lt;' + document.getElementById('hq-email').value + '&gt;</em>';
+            msg.style.display = 'block';
+            
+            btn.disabled = false;
+            btn.textContent = 'Request Quote';
+        });
+    </script>
+</body>
+</html>
